@@ -1,0 +1,152 @@
+﻿@page "/Inventario"
+@rendermode InteractiveServer
+
+<h3>Inventario de productos</h3>
+
+<div class="mb-3">
+    <label for="numero" class="form-label">Número de inventario:</label>
+    <input id="numero" type="number" class="form-control" @bind="NumeroInventario" />
+</div>
+
+<div class="mb-3">
+    <label for="descripcion" class="form-label">Descripción del producto:</label>
+    <input id="descripcion" type="text" class="form-control" @bind="Descripcion" />
+</div>
+
+<div class="mb-3">
+    <label for="departamento" class="form-label">Departamento:</label>
+    <select id="departamento" class="form-select" @bind="Departamento">
+        <option value="">Selecciona un departamento</option>
+        <option value="Frutas">Frutas</option>
+        <option value="Verduras">Verduras</option>
+        <option value="Lácteos">Lácteos</option>
+    </select>
+</div>
+
+<button class="btn btn-primary me-2 mb-2" @onclick="GuardarDatos">Guardar datos</button>
+<button class="btn btn-secondary me-2 mb-2" @onclick="MostrarListaCompleta">Lista completa</button>
+<button class="btn btn-success me-2 mb-2" @onclick='() => MostrarPorDepartamento("Frutas")'>Lista de frutas</button>
+<button class="btn btn-success me-2 mb-2" @onclick='() => MostrarPorDepartamento("Verduras")'>Lista de verduras</button>
+<button class="btn btn-success me-2 mb-2" @onclick='() => MostrarPorDepartamento("Lácteos")'>Lista de lácteos</button>
+<button class="btn btn-danger mb-2" @onclick="CerrarLista">Cerrar lista</button>
+
+@if (!string.IsNullOrWhiteSpace(Mensaje))
+{
+    <p class="mt-3">@Mensaje</p>
+}
+
+@if (MostrarListado)
+{
+    <h4 class="mt-4">@TituloLista</h4>
+
+    @if (NumerosMostrados.Count == 0)
+    {
+        <p>No hay productos para mostrar.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Número de inventario</th>
+                    <th>Descripción</th>
+                    <th>Departamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < NumerosMostrados.Count; i++)
+                {
+                    <tr>
+                        <td>@NumerosMostrados[i]</td>
+                        <td>@DescripcionesMostradas[i]</td>
+                        <td>@DepartamentosMostrados[i]</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private int? NumeroInventario;
+    private string Descripcion = "";
+    private string Departamento = "";
+
+    private List<int> Numeros = new();
+    private List<string> Descripciones = new();
+    private List<string> Departamentos = new();
+
+    private List<int> NumerosMostrados = new();
+    private List<string> DescripcionesMostradas = new();
+    private List<string> DepartamentosMostrados = new();
+
+    private bool MostrarListado = false;
+    private string TituloLista = "";
+    private string Mensaje = "";
+
+    private void GuardarDatos()
+    {
+        if (NumeroInventario == null || string.IsNullOrWhiteSpace(Descripcion) || string.IsNullOrWhiteSpace(Departamento))
+        {
+            Mensaje = "Completa todos los campos.";
+            return;
+        }
+
+        if (Numeros.Contains(NumeroInventario.Value))
+        {
+            Mensaje = "Ese número de inventario ya existe. Usa otro.";
+            return;
+        }
+
+        Numeros.Add(NumeroInventario.Value);
+        Descripciones.Add(Descripcion);
+        Departamentos.Add(Departamento);
+
+        NumeroInventario = null;
+        Descripcion = "";
+        Departamento = "";
+        Mensaje = "Producto guardado correctamente.";
+    }
+
+    private void MostrarListaCompleta()
+    {
+        NumerosMostrados = Numeros.ToList();
+        DescripcionesMostradas = Descripciones.ToList();
+        DepartamentosMostrados = Departamentos.ToList();
+
+        TituloLista = "Lista completa de productos";
+        MostrarListado = true;
+        Mensaje = "";
+    }
+
+    private void MostrarPorDepartamento(string departamento)
+    {
+        NumerosMostrados = new List<int>();
+        DescripcionesMostradas = new List<string>();
+        DepartamentosMostrados = new List<string>();
+
+        for (int i = 0; i < Numeros.Count; i++)
+        {
+            if (Departamentos[i] == departamento)
+            {
+                NumerosMostrados.Add(Numeros[i]);
+                DescripcionesMostradas.Add(Descripciones[i]);
+                DepartamentosMostrados.Add(Departamentos[i]);
+            }
+        }
+
+        TituloLista = "Lista de " + departamento.ToLower();
+        MostrarListado = true;
+        Mensaje = "";
+    }
+
+    private void CerrarLista()
+    {
+        MostrarListado = false;
+        NumerosMostrados.Clear();
+        DescripcionesMostradas.Clear();
+        DepartamentosMostrados.Clear();
+        TituloLista = "";
+        Mensaje = "";
+    }
+}
